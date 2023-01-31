@@ -1,6 +1,11 @@
 <template>
 	<div id="app">
-		<SearchAutocomplete :items="searchResult" @search="handleSearch" />
+		<SearchAutocomplete
+			@blur="handleSearch"
+			@input="handleSearch"
+			v-model="search"
+			:items="searchResult"
+		/>
 	</div>
 </template>
 
@@ -16,15 +21,23 @@ export default {
 	data() {
 		return {
 			searchResult: [],
+			search: ''
 		};
 	},
 	methods: {
-		 handleSearch(data) {
-			const res =  axios
-				.get(`https://us1.locationiq.com/v1/search?key=pk.e87810ce3ac416dd6ed9e4195717bd04`, { params: { q: data, format: 'json' } })
-				.then(response => (this.searchResult = response.data.map(a => a.display_name)))
-			
+		handleSearch() {
+			setTimeout(() => {
+				const res = axios
+					.get(`https://us1.locationiq.com/v1/search?key=pk.e87810ce3ac416dd6ed9e4195717bd04`, { params: { q: this.search, format: 'json' } })
+					.then(response => (this.searchResult = response.data.map(a => a.display_name)))
+			}, 1000);
 
+
+		}
+	},
+	mounted() {
+		if (this.search) {
+			this.handleSearch()
 		}
 	},
 }

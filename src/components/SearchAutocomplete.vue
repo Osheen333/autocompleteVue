@@ -1,10 +1,10 @@
 <template>
 	<div class="autocomplete">
 		<input
-			type="text"
-			v-model="search"
 			placeholder="Type address"
-			@input="onChange"
+			type="text"
+			:value="modelValue"
+			@input="$emit('update:modelValue', $event.target.value,isOpen=true)"
 			@keydown.down="onArrowDown"
 			@keydown.up="onArrowUp"
 			@keydown.enter="onEnter"
@@ -19,7 +19,7 @@
 					:class="{ 'is-active': i === arrowCounter }"
 				>{{ result }}</li>
 			</template>
-			<div v-if="search &&  !searchResult.length">no result found</div>
+			<div v-if="modelValue &&  !searchResult.length">no result found</div>
 		</ul>
 	</div>
 </template>
@@ -33,20 +33,25 @@ export default {
 			required: false,
 			default: () => [],
 		},
+		modelValue: {
+			type: String,
+			default: '',
+			required: true
+		}
 	},
+
 	data() {
 		return {
-			search: '',
-			results: [],
-			isOpen: false,
-			arrowCounter: -1
-
+			isOpen: true,
+			arrowCounter: -1,
+			temp_value: this.value
 		};
 	},
 	computed: {
 		searchResult() {
-			return this.search ? this.items : []
-		}
+			return this.modelValue ? this.items : []
+		},
+
 	},
 	mounted() {
 		document.addEventListener('click', this.handleClickOutside);
@@ -57,39 +62,32 @@ export default {
 	},
 	methods: {
 		setResult(result) {
-			this.search = result;
+			// this.search = result;
+			this.$emit('update:modelValue', result)
 			this.isOpen = false;
+			this.arrowCounter = -1;
 		},
 
-		onChange() {
-			setTimeout(() => {
-
-				this.$emit('search', this.search);
-			}, 1000);
-			this.isOpen = true;
-
-			// this.filterResults();
-
-		},
 		handleClickOutside(event) {
 			if (!this.$el.contains(event.target)) {
 				this.arrowCounter = -1;
-
 				this.isOpen = false;
 			}
 		},
 		onArrowDown() {
-			if (this.arrowCounter < this.searchResult.length) {
+			this.isOpen = true;
+			if (this.arrowCounter < this.searchResult.length-1) {
 				this.arrowCounter = this.arrowCounter + 1;
 			}
 		},
 		onArrowUp() {
+			this.isOpen = true;
 			if (this.arrowCounter > 0) {
 				this.arrowCounter = this.arrowCounter - 1;
 			}
 		},
 		onEnter() {
-			this.search = this.searchResult[this.arrowCounter];
+			this.$emit('update:modelValue', this.searchResult[this.arrowCounter])
 			this.arrowCounter = -1;
 			this.isOpen = false;
 		},
